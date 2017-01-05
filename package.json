@@ -1,0 +1,19 @@
+{
+  "name": "website-4",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon app/app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.5.5",
+    "express": "^4.14.0",
+    "markdown-it": "^8.2.2",
+    "nodemon": "^1.11.0",
+    "reload": "^1.1.0",
+    "request": "^2.79.0"
+  }
+}
