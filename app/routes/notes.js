@@ -67,7 +67,6 @@ function getNoteOfACourse(courseCode, callback) {
 		        console.log('|\t' + response.headers['content-type'])
 
 		        response.on('data', function(d){
-			        md += '<!--' + options.host + options.path + '-->\n'
 		            md += d.toString('utf8')
 		        })
 
