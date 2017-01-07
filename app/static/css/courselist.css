@@ -12,6 +12,11 @@
 .course-list a {
     display: block;
     text-decoration: none;
+    color: #666;
+}
+
+.course-list a:hover {
+    color: darkslateblue;
 }
 
 .course-list .course-code {
