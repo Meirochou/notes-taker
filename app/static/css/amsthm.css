@@ -1,0 +1,159 @@
+/* -------  counters  -------  */
+
+body
+{
+    counter-reset: theorem;
+    counter-reset: lecture;
+}
+
+.markdown-body h2:after {
+    content: "";
+}
+
+.markdown-body h2 {
+    counter-increment: lecture;
+    counter-reset: theorem;
+}
+
+/* -------  theoremstyle{plain}  -------  */
+
+.markdown-body .theorem,
+.markdown-body .lemma,
+.markdown-body .proposition,
+.markdown-body .corollary {
+    display: block;
+    margin: 12px 0;
+    font-style: italic;
+    counter-increment: theorem;
+}
+
+.markdown-body .theorem:before,
+.markdown-body .lemma:before,
+.markdown-body .proposition:before,
+.markdown-body .corollary:before {
+    font-weight: bold;
+    font-style: normal;
+}
+
+.markdown-body .theorem:before {
+    content: counter(lecture) "." counter(theorem) " Theorem. ";
+}
+
+.markdown-body .lemma:before {
+    content: counter(lecture) "." counter(theorem) " Lemma. ";
+}
+
+.markdown-body .proposition:before {
+    content: counter(lecture) "." counter(theorem) " Proposition. ";
+}
+
+.markdown-body .corollary:before {
+    content: counter(lecture) "." counter(theorem) " Corollary. ";
+}
+
+
+/* -------  theoremstyle{definition}  -------  */
+
+.markdown-body .definition,
+.markdown-body .example,
+.markdown-body .axiom,
+.markdown-body .question,
+.markdown-body .exercise {
+    display: block;
+    margin: 12px 0;
+    font-style: normal;
+    counter-increment: theorem;
+}
+
+.markdown-body .definition:before,
+.markdown-body .example:before,
+.markdown-body .axiom:before,
+.markdown-body .question:before,
+.markdown-body .exercise:before {
+    font-weight: bold;
+    font-style: normal;
+}
+
+.markdown-body .definition:before {
+    content: counter(lecture) "." counter(theorem) " Definition. ";
+}
+
+.markdown-body .example:before {
+    content: counter(lecture) "." counter(theorem) " Example. ";
+}
+
+.markdown-body .axiom:before {
+    content: counter(lecture) "." counter(theorem) " Axiom. ";
+}
+
+.markdown-body .question:before {
+    content: counter(lecture) "." counter(theorem) " Question. ";
+}
+
+.markdown-body .exercise:before {
+    content: counter(lecture) "." counter(theorem) " Exercise. ";
+}
+
+/* -------  theoremstyle{remark}  -------  */
+
+.markdown-body .note,
+.markdown-body .notation,
+.markdown-body .remark,
+.markdown-body .claim,
+.markdown-body .solution {
+    display: block;
+    margin: 12px 0;
+    font-style: normal;
+}
+
+.markdown-body .note:before,
+.markdown-body .notation:before,
+.markdown-body .remark:before,
+.markdown-body .claim:before,
+.markdown-body .solution:before {
+    font-style: italic;
+    font-weight: normal;
+}
+
+.markdown-body .note:before {
+    content: "Note. "
+}
+
+.markdown-body .notation:before {
+    content: "Notation. "
+}
+
+.markdown-body .remark:before {
+    content: "Remark. "
+}
+
+.markdown-body .claim:before {
+    content: "Claim. "
+}
+
+.markdown-body .solution:before {
+    content: "Solution. "
+}
+
+
+/* -------  proof  -------  */
+
+.markdown-body .proof {
+    display: block;
+    margin: 12px 0;
+    font-style: normal;
+}
+.markdown-body .proof:before {
+    content: "Proof.";
+    font-style: italic;
+}
+.markdown-body .proof:after {
+    content: "\220E";
+    float:right;
+    position: relative;
+    top: -23px;
+}
+
+.markdown-body .proof + * {
+    clear: both;
+}

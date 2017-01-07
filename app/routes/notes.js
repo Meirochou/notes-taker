@@ -4,7 +4,6 @@ var express = require('express'),
     https = require('https'),
     md = require('markdown-it')({html: true}),
     url = require('url'),
-    reloadScript = '<script src="/reload/reload.js"></script>',
     owner = 'zhongweizhao',
     repo = 'github-api-test',
     uwAPIKey = '5edb44d933a5d6262bc77b8375ae0a3d'
@@ -129,7 +128,8 @@ function getNoteOfACourse(courseCode, callback) {
 }
 
 
-function getCourseDescription(subject, catalog_number, callback) {
+
+function getCourseTitle(subject, catalog_number, callback) {
 	var options = {
         host: 'api.uwaterloo.ca',
         path: '/v2/courses/' + subject + '/' + catalog_number + '.json?key=' + uwAPIKey,
@@ -154,8 +154,8 @@ function getCourseDescription(subject, catalog_number, callback) {
 	            data = JSON.parse(body)
 	            if (data.meta.status == 200) {
 		            console.log('|\tCourse title get')
-		            description = data.data.title
-		            callback(description)
+		            Title = data.data.title
+		            callback(Title)
 		        } else {
 			        console.log('|\tCourse title failed to get')
 			        callback('Failed to get course title')
@@ -173,7 +173,64 @@ function getCourseDescription(subject, catalog_number, callback) {
     request.end()
 }
 
+/* get title of an array of courses */
+/*
+params:
+    coursesList = [
+        {
+            subject: "CS",
+            catalog_number: "145"
+        },
+        {
+            subject: "MATH",
+            catalog_number: "135"
+        }
+    ],
+    callback
 
+will exec
+
+    var newCoursesList = [
+        {
+            subject: "CS",
+            catalog_number: "145",
+            title: "Designing Functional Programs (Advanced Level)"
+        },
+        {
+            subject: "MATH",
+            catalog_number: "135",
+            title: "Algebra for Honours Mathematics"
+        }
+    ],
+    callback(newCoursesList)
+
+*/
+function getCoursesTitle(coursesList, callback) {
+    function getCoursesTitleHelper(coursesList, callback, newCoursesList) {
+        if (coursesList.length == 0) {
+            callback(newCoursesList)
+        } else {
+            getCourseTitle(coursesList[0].subject, coursesList[0].catalog_number, function(title){
+                coursesList[0].title = title
+                newCoursesList.push(coursesList[0])
+                getCoursesTitleHelper(coursesList.slice(1), callback, newCoursesList)
+            })
+        }
+    }
+
+    getCoursesTitleHelper(coursesList, callback, [])
+}
+
+
+/*
+
+Escape HTML characters in the LaTeX parts in the markdown code
+say, "<" or ">" in LaTeX code, which will affect markdown being successfully rendered.
+
+Also the new line "\\" in LaTeX, which will be treated as escaped backslash and rendered as "\"
+So the backslash symbol also need to be escaped.
+
+*/
 function escapeLaTeX(input) {
     function escapeChar(c) {
         switch (c) {
@@ -227,14 +284,48 @@ function escapeLaTeX(input) {
 
 }
 
+
+
 router.get('/', function(req, res){
     function callback(notesListData) {
         var info = ''
         notesListData = JSON.parse(notesListData)
 
-        res.render('notes/index', {
-	        notesListData: notesListData
-        })
+        var coursesList = []
+
+        for (i = 0; i < notesListData.length; i++) {
+            if (notesListData[i].type == "dir") {
+                coursesList.push({
+                    subject: notesListData[i].name.replace(/(([A-Z]|[a-z])+)(\d+(([A-Z]|[a-z])+)*)$/g, '$1').toUpperCase(),
+                    catalog_number: notesListData[i].name.replace(/(([A-Z]|[a-z])+)(\d+(([A-Z]|[a-z])+)*)$/g, '$3').toUpperCase()
+                })
+            }
+        }
+
+        /* the above code will generate a coursesList like the following:
+
+        coursesList = [
+            {
+                subject: "CS",
+                catalog_number: "145"
+            },
+            {
+                subject: "MATH",
+                catalog_number: "135"
+            }
+        ]
+
+        */
+
+        function callback(coursesList) {
+            res.render('notes/index', {
+    	        coursesList: coursesList,
+                Title: 'Courses'
+            })
+        }
+
+        getCoursesTitle(coursesList, callback)
+
     }
 
     getNotesList(callback)
@@ -244,20 +335,20 @@ router.get('/', function(req, res){
 router.get(/(\w+[0-9]\w*)/, function(req, res){
 	console.log('\n--------------------------------')
     function callback(data) {
-	    markdown = md.render(escapeLaTeX(data)) + reloadScript
+	    markdown = md.render(escapeLaTeX(data))
 	    subject =  req.params[0].replace(/(([A-Z]|[a-z])+)(\d+(([A-Z]|[a-z])+)*)$/g, '$1').toUpperCase()
 	    catalog_number = req.params[0].replace(/(([A-Z]|[a-z])+)(\d+(([A-Z]|[a-z])+)*)$/g, '$3').toUpperCase()
 	    title = subject + ' ' + catalog_number
 
-	    function callback(description) {
+	    function callback(course_title) {
 	        res.render('notes/detail', {
 		        markdown: markdown,
 		        Title: title,
-		        description: description
+		        course_title: course_title
 	        })
         }
 
-        getCourseDescription(subject, catalog_number, callback)
+        getCourseTitle(subject, catalog_number, callback)
 
     }
 
