@@ -1,0 +1,24 @@
+.course-list {
+    list-style: none;
+}
+
+.course-list li {
+    background: aliceblue;
+    padding: 8px 15px;
+    margin: 0 0 10px;
+    border-radius: 5px;
+}
+
+.course-list a {
+    display: block;
+    text-decoration: none;
+    color: #666;
+}
+
+.course-list a:hover {
+    color: darkslateblue;
+}
+
+.course-list .course-code {
+    font-size: 24px;
+}

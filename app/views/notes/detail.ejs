@@ -3,6 +3,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <title><%= Title %></title>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/markdown.css">
+    <link rel="stylesheet" href="/static/css/amsthm.css">
+    <link rel="stylesheet" href="/static/css/waves.css">
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 </head>
@@ -29,7 +32,7 @@
         <header class="content-header">
             <div class="container">
                 <h1 class="content-title"><%= Title %></h1>
-                <h5 class="content-subtitle"><%= description %></h5>
+                <h5 class="content-subtitle"><%= course_title %></h5>
             </div>
         </header>
         <div class="container body-wrap markdown-body" id="content">
@@ -40,8 +43,10 @@
     <a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-float waves-light">
         <i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i>
     </a>
+    <script src="/reload/reload.js"></script>
     <script type="text/javascript" src="/static/js/waves.js"></script>
     <script type="text/javascript" src="/static/js/main.js"></script>
+    <script type="text/javascript" src="/static/js/markdown-toc.js"></script>
     <script type="text/javascript" defer
       src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG">
     </script>

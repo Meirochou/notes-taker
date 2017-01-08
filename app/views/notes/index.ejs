@@ -1,20 +1,81 @@
-<html lang="en">
+<!DOCTYPE html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <title><%= Title %></title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/courselist.css">
+    <link rel="stylesheet" href="/static/css/waves.css">
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 </head>
 <body>
+    <div id="loading" class="active"></div>
+    <nav id="menu" class="active">
+        <div class="menu-inner flex-row-vertical">
+            <ul class="nav flex-col" id="table-of-content">
 
+            </ul>
+            <footer>
+                <p>Zhongwei &copy; 2017</p>
+            </footer>
+        </div>
+    </nav>
     <main>
-        <div>
-            <% notesListData.forEach(function(item){
-            		if (item.type == "dir") { %>
-						<li>
-                        	<a href="/notes/<%= item.name %>"><%= item.name %></a>
-						</li>
-			<%     }
-				})%>
+        <header class="top-header" id="top-header">
+            <div class="flex-row">
+                <!--<a href="javascript:;" id="menuToggle" class="header-icon waves-effect waves-light"><i class="fa fa-bars fa-lg" aria-hidden="true"></i></a>-->
+                <div id="header-title" class="flex-col header-title"><%= Title %></div>
+                <!--<a href="javascript:window.print()" id="menuToggle" class="header-icon waves-effect waves-light"><i class="fa fa-print fa-lg" aria-hidden="true"></i></a>-->
+            </div>
+        </header>
+        <header class="content-header">
+            <div class="container">
+                <h1 class="content-title"><%= Title %></h1>
+                <h5 class="content-subtitle"><!--subtitle goes here--></h5>
+            </div>
+        </header>
+        <div class="container body-wrap" id="content">
+            <ol class="course-list">
+                <% coursesList.forEach(function(item){ %>
+					<li>
+                        <a href="/notes/<%= item.subject.toLowerCase() + item.catalog_number %>">
+                            <div class="course-code"><%= item.subject + " " + item.catalog_number %></div>
+                            <div class="course-title"><%= item.title %></div>
+                        </a>
+					</li>
+    			<%})%>
+            </ol>
         </div>
     </main>
-
-    
+    <div class="mask" id="mask"></div>
+    <a href="javascript:;" id="gotop" class="waves-effect waves-circle waves-float waves-light">
+        <i class="fa fa-chevron-up fa-lg" aria-hidden="true"></i>
+    </a>
+    <script src="/reload/reload.js"></script>
+    <script type="text/javascript" src="/static/js/waves.js"></script>
+    <script type="text/javascript" src="/static/js/main.js"></script>
+    <script type="text/javascript" defer
+      src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG">
+    </script>
+    <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      messageStyle: "normal",
+      tex2jax: {inlineMath:[['$', '$']], displayMath:[['$$','$$'], ['\[','\]']]},
+      TeX: {
+          Macros: {
+              RR: "{\\mathbb{R}}",
+              CC: "{\\mathbb{C}}",
+              NN: "{\\mathbb{N}}",
+              QQ: "{\\mathbb{Q}}",
+              abs: ["{\\left| #1 \\right| }", 1],
+          },
+      },
+      jax: ["input/TeX","output/SVG"],
+    });
+    MathJax.Hub.Queue(function(){
+        var loading = document.getElementById('loading');
+        loading.classList.remove('active');
+    });
+    </script>
 </body>
 </html>
