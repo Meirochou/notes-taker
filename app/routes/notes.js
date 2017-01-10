@@ -1,225 +1,218 @@
 var express = require('express'),
-app = express(),
-router = express.Router(),
-https = require('https'),
-md = require('markdown-it')({html: true}),
-url = require('url'),
-owner = 'zhongweizhao',
-repo = 'github-api-test',
-uwAPIKey = '5edb44d933a5d6262bc77b8375ae0a3d'
+    app = express(),
+    router = express.Router(),
+    https = require('https'),
+    md = require('markdown-it')({html: true}),
+    url = require('url'),
+    owner = 'zhongweizhao',
+    repo = 'github-api-test',
+    uwAPIKey = '5edb44d933a5d6262bc77b8375ae0a3d'
 
-function getNotesList(callback){
-    var options = {
-        host: 'api.github.com',
-        path: '/repos/' + owner + '/' + repo + '/contents/',
-        method: 'GET',
-        headers: {'user-agent': 'node.js'}
-    }
+/**
+ * getCoursesListPromise
+ * get the JSON of the files and directory in the repository define at the top of the file
+ **/
+function getCoursesListPromise(){
+    return new Promise(function(resolve, reject) {
+        var options = {
+            host: 'api.github.com',
+            path: '/repos/' + owner + '/' + repo + '/contents/',
+            method: 'GET',
+            headers: {'user-agent': 'node.js'}
+        }
 
-    var body = ''
-    var request = https.request(options, function(response){
-        console.log('statusCode:', response.statusCode)
-        console.log('' + response.headers['content-type'])
+        var body = ''
+        var request = https.request(options, function(response){
+            console.log('getCoursesListPromise')
+            console.log('statusCode:', response.statusCode)
+            console.log('' + response.headers['content-type'])
 
-        response.on('data', function(d){
-            body += d.toString('utf8')
+            response.on('data', function(d){
+                body += d.toString('utf8')
+            })
+
+            response.on('end', function(){
+                console.log('Close reveived!\n')
+                resolve(body)
+            })
         })
 
-        response.on('end', function(){
-            console.log('Close reveived!\n')
-            callback(body)
+        request.on('error', function(e){
+            reject(Error('problem with request: ' + e.message))
+        })
+
+        request.end()
+    })
+}
+
+/**
+ * downloadNoteAsync
+ * download
+ **/
+function downloadNoteAsync(path) {
+    return new Promise(function(resolve, reject) {
+        var options = {
+            host: 'raw.githubusercontent.com',
+            path: path,
+            method: 'GET',
+            headers: {'user-agent': 'node.js'}
+        }
+
+        console.log('|\tDownloading from ' + options.path)
+
+        var request = https.request(options, function(response){
+            console.log('|\tstatusCode:', response.statusCode)
+            console.log('|\t' + response.headers['content-type'])
+
+            var data = ''
+
+            response.on('data', function(d) {
+                data += d.toString('utf8')
+            })
+
+            response.on('end', function(){
+                console.log('|\tReceived!')
+                data += '\n'
+                resolve(data)
+            })
+        })
+
+        request.on('error', function(e){
+            reject(Error('Problem with request: ' + e.message))
         })
     })
+}
 
-    request.on('error', function(e){
-        console.log('problem with request: ' + e.message)
+/**
+ * downloadNotesAsync
+ * takes an array of paths
+ * return a Promise that download all the notes in the list
+ **/
+function downloadNotesAsync(noteFilesPathList) {
+    return new Promise(function(resolve, reject){
+        notePromises = noteFilesPathList.map(function(path){return downloadNoteAsync(path)})
+
+        data = ""
+        Promise.all(notePromises).then(function(allData){
+            data = allData.join('\n')
+        }, function(error){
+            console.log(Error(error))
+        })
+        resolve(data)
     })
-
-    request.end()
 }
 
 
-function getNoteOfACourse(courseCode, callback) {
-
-    function downloadNotes(noteFilesList, callback, md) {
-
-        if (md === undefined) {
-            md = ""
+function getNotesListOfACoursePromise(coursesCode){
+    return new Promise(function(resolve, reject){
+        var options = {
+            host: 'api.github.com',
+            path: '/repos/' + owner + '/' + repo + '/contents/' + courseCode,
+            method: 'GET',
+            headers: {'user-agent': 'node.js'}
         }
 
-        if (noteFilesList.length == 0){
-            console.log('|Finished downloading all notes.\n')
-            callback(md)
-        } else {
-            /* get the first note and */
-            var options = {
-                host: 'raw.githubusercontent.com',
-                path: url.parse(noteFilesList[0].download_url).pathname,
-                method: 'GET',
-                headers: {'user-agent': 'node.js'}
-            }
+        var body = ''
+        var request = https.request(options, function(response){
+            console.log('getNotesListOfACoursePromise')
+            console.log('statusCode:', response.statusCode)
+            console.log(response.headers['content-type'])
 
-            console.log('|\tDownloading from ' + options.path)
-
-            var request = https.request(options, function(response){
-                console.log('|\tstatusCode:', response.statusCode)
-                console.log('|\t' + response.headers['content-type'])
-
-                response.on('data', function(d){
-                    md += d.toString('utf8')
-                })
-
-                response.on('end', function(){
-                    console.log('|\tReveived!')
-                    md += '\n'
-                    /* get the rest notes */
-                    downloadNotes(noteFilesList.slice(1), callback, md)
-                })
+            response.on('data', function(d){
+                body += d.toString('utf8')
             })
 
-            request.on('error', function(e){
-                console.log('problem with request: ' + e.message)
-            })
+            response.on('end', function(){
+                console.log('Close reveived!\n')
+                noteFilesList = JSON.parse(body)
 
-            request.end()
+                noteFilesPathList = noteFilesLista.map(function(entry){
+                    return url.parse(entry.download_url).pathname
+                })
 
-
-        }
-    }
-
-
-    var options = {
-        host: 'api.github.com',
-        path: '/repos/' + owner + '/' + repo + '/contents/' + courseCode,
-        method: 'GET',
-        headers: {'user-agent': 'node.js'}
-    }
-
-    var body = ''
-    var request = https.request(options, function(response){
-        console.log('statusCode:', response.statusCode)
-        console.log(response.headers['content-type'])
-
-        response.on('data', function(d){
-            body += d.toString('utf8')
-        })
-
-        response.on('end', function(){
-            console.log('Close reveived!\n')
-            noteFilesList = JSON.parse(body)
-            if (response.statusCode == 200){
-                console.log('|Start download notes.\n')
-                downloadNotes(noteFilesList, callback)
-            } else {
-                var console_message = 'Fail to find notes\n'
-                console.log(console_message)
-                var message = '`Fail to fetch notes`'
-                callback(message)
-            }
-        })
-    })
-
-    request.on('error', function(e){
-        console.log('problem with request: ' + e.message)
-    })
-
-    request.end()
-
-}
-
-
-
-function getCourseTitle(subject, catalog_number, callback) {
-    var options = {
-        host: 'api.uwaterloo.ca',
-        path: '/v2/courses/' + subject + '/' + catalog_number + '.json?key=' + uwAPIKey,
-        method: 'GET',
-        headers: {'user-agent': 'node.js'}
-    }
-
-    var body = ''
-    var request = https.request(options, function(response){
-        console.log('Fetch course title: ')
-        console.log('|\tstatusCode:', response.statusCode)
-        console.log('|\t' + response.headers['content-type'])
-
-        response.on('data', function(d){
-            body += d.toString('utf8')
-        })
-
-        response.on('end', function(){
-            console.log('|\tReveived!')
-            if (response.statusCode == 200){
-                console.log('|\tRequest success')
-                data = JSON.parse(body)
-                if (data.meta.status == 200) {
-                    console.log('|\tCourse title get')
-                    Title = data.data.title
-                    callback(Title)
+                if (response.statusCode == 200){
+                    console.log('|Start download notes.\n')
+                    downloadNotesAsync(noteFilesList).then(resolve, reject)
                 } else {
-                    console.log('|\tCourse title failed to get')
-                    callback('Failed to get course title')
+                    var console_message = 'Fail to find notes\n'
+                    console.log(console_message)
+                    var message = '`Fail to fetch notes`'
+                    reject(Error(message))
                 }
-            } else {
-                console.log('|\tRequest failed')
+            })
+        })
+        request.on('error', function(e){
+            reject(Error('problem with request: ' + e.message))
+        })
+        request.end()
+    })
+}
+
+function getCourseTitlePromise(subject, catalog_number){
+    return new Promise(function(resolve, reject){
+        var options = {
+            host: 'api.uwaterloo.ca',
+            path: '/v2/courses/' + subject + '/' + catalog_number + '.json?key=' + uwAPIKey,
+            method: 'GET',
+            headers: {'user-agent': 'node.js'}
+        }
+
+        var body = ''
+        var request = https.request(options, function(response){
+            console.log('Fetch course title: ')
+            console.log('|\tstatusCode:', response.statusCode)
+            console.log('|\t' + response.headers['content-type'])
+
+            response.on('data', function(d){
+                body += d.toString('utf8')
+            })
+
+            response.on('end', function(){
+                console.log('|\tReveived!')
+                if (response.statusCode == 200){
+                    console.log('|\tRequest success')
+                    data = JSON.parse(body)
+                    if (data.meta.status == 200) {
+                        console.log('|\tCourse title get')
+                        Title = data.data.title
+                        resolve(Title)
+                    } else {
+                        console.log('|\tCourse title failed to get')
+                        reject(Error('Failed to get course title'))
+                    }
+                } else {
+                    console.log('|\tRequest failed')
+                }
+            })
+        })
+
+        request.on('error', function(e){
+            console.log('problem with request: ' + e.message)
+            reject(Error('problem with request: ' + e.message))
+        })
+
+        request.end()
+    })
+}
+
+function getCoursesTitlePromise(coursesList) {
+    return new Promise(function(resolve, reject){
+        coursePromises = coursesList.map(function(entry){
+            return getCourseTitlePromise(entry.subject, entry.catalog_number)
+        })
+
+        var n = 0
+        Promise.all(coursePromises).then(function(data){
+            for (var i=0;i<coursesList.length; i++){
+                coursesList[i].title = data[i]
             }
+            resolve(coursesList)
+        }, function(error){
+            reject(Error(error))
         })
     })
-
-    request.on('error', function(e){
-        console.log('problem with request: ' + e.message)
-    })
-
-    request.end()
 }
 
-/* get title of an array of courses */
-/*
-params:
-coursesList = [
-{
-subject: "CS",
-catalog_number: "145"
-},
-{
-subject: "MATH",
-catalog_number: "135"
-}
-],
-callback
-
-will exec
-
-var newCoursesList = [
-{
-subject: "CS",
-catalog_number: "145",
-title: "Designing Functional Programs (Advanced Level)"
-},
-{
-subject: "MATH",
-catalog_number: "135",
-title: "Algebra for Honours Mathematics"
-}
-],
-callback(newCoursesList)
-
-*/
-function getCoursesTitle(coursesList, callback) {
-    function getCoursesTitleHelper(coursesList, callback, newCoursesList) {
-        if (coursesList.length == 0) {
-            callback(newCoursesList)
-        } else {
-            getCourseTitle(coursesList[0].subject, coursesList[0].catalog_number, function(title){
-                coursesList[0].title = title
-                newCoursesList.push(coursesList[0])
-                getCoursesTitleHelper(coursesList.slice(1), callback, newCoursesList)
-            })
-        }
-    }
-
-    getCoursesTitleHelper(coursesList, callback, [])
-}
 
 
 /*
@@ -287,9 +280,10 @@ function escapeLaTeX(input) {
 
 
 router.get('/', function(req, res){
-    function callback(notesListData) {
+
+    getCoursesListPromise().then(function(data){
         var info = ''
-        notesListData = JSON.parse(notesListData)
+        notesListData = JSON.parse(data)
 
         var coursesList = []
 
@@ -302,57 +296,52 @@ router.get('/', function(req, res){
             }
         }
 
-        /* the above code will generate a coursesList like the following:
+        getCoursesTitlePromise(coursesList).then(function(data){
+            res.render('notes/index', {
+                coursesList: data,
+                Title: 'Courses',
+            })
+        }, function(reason){
 
-        coursesList = [
-        {
-        subject: "CS",
-        catalog_number: "145"
-    },
-    {
-    subject: "MATH",
-    catalog_number: "135"
-}
-]
-
-*/
-
-function callback(coursesList) {
-    res.render('notes/index', {
-        coursesList: coursesList,
-        Title: 'Courses'
+        })
+    }, function(reason){
+        res.render('notes/index', {
+            error: 'Cannot find notes',
+            Title: 'Courses'
+        })
     })
-}
-
-getCoursesTitle(coursesList, callback)
-
-}
-
-getNotesList(callback)
 
 })
 
+
 router.get(/(\w+[0-9]\w*)/, function(req, res){
     console.log('\n--------------------------------')
-    function callback(data) {
+
+    getNotesListOfACoursePromise(req.params[0]).then(function(data){
         markdown = md.render(escapeLaTeX(data))
         subject =  req.params[0].replace(/(([A-Z]|[a-z])+)(\d+(([A-Z]|[a-z])+)*)$/g, '$1').toUpperCase()
         catalog_number = req.params[0].replace(/(([A-Z]|[a-z])+)(\d+(([A-Z]|[a-z])+)*)$/g, '$3').toUpperCase()
         title = subject + ' ' + catalog_number
 
         function callback(course_title) {
+
+        }
+
+        getCourseTitlePromise(subject, catalog_number).then(function(course_title){
             res.render('notes/detail', {
                 markdown: markdown,
                 Title: title,
                 course_title: course_title
             })
-        }
+        }, function(reason) {
 
-        getCourseTitle(subject, catalog_number, callback)
+        })
 
-    }
+    }, function(reason){
 
-    getNoteOfACourse(req.params[0], callback)
+    })
+
 })
+
 
 module.exports = router

@@ -11,7 +11,6 @@ app.set('views', 'app/views')
 app.use('/static', express.static(path.join(__dirname, "static")))
 app.use("/", require(path.join(__dirname, "routes/index")))
 app.use("/notes", require(path.join(__dirname, "routes/notes")))
-app.use("/newnotes", require(path.join(__dirname, "routes/newnotes")))
 
 var server = app.listen(app.get("port"), function() {
     console.log("Listening on port " + app.get("port"))
