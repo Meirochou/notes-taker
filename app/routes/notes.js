@@ -51,6 +51,7 @@ function getCoursesListPromise(){
  **/
 function downloadNoteAsync(path) {
     return new Promise(function(resolve, reject) {
+        console.log(path)
         var options = {
             host: 'raw.githubusercontent.com',
             path: path,
@@ -80,6 +81,8 @@ function downloadNoteAsync(path) {
         request.on('error', function(e){
             reject(Error('Problem with request: ' + e.message))
         })
+
+        request.end()
     })
 }
 
@@ -95,15 +98,15 @@ function downloadNotesAsync(noteFilesPathList) {
         data = ""
         Promise.all(notePromises).then(function(allData){
             data = allData.join('\n')
+            resolve(data)
         }, function(error){
             console.log(Error(error))
         })
-        resolve(data)
     })
 }
 
 
-function getNotesListOfACoursePromise(coursesCode){
+function getNotesListOfACoursePromise(courseCode){
     return new Promise(function(resolve, reject){
         var options = {
             host: 'api.github.com',
@@ -112,11 +115,12 @@ function getNotesListOfACoursePromise(coursesCode){
             headers: {'user-agent': 'node.js'}
         }
 
-        var body = ''
         var request = https.request(options, function(response){
             console.log('getNotesListOfACoursePromise')
             console.log('statusCode:', response.statusCode)
             console.log(response.headers['content-type'])
+
+            var body = ''
 
             response.on('data', function(d){
                 body += d.toString('utf8')
@@ -126,13 +130,13 @@ function getNotesListOfACoursePromise(coursesCode){
                 console.log('Close reveived!\n')
                 noteFilesList = JSON.parse(body)
 
-                noteFilesPathList = noteFilesLista.map(function(entry){
+                noteFilesPathList = noteFilesList.map(function(entry){
                     return url.parse(entry.download_url).pathname
                 })
 
                 if (response.statusCode == 200){
                     console.log('|Start download notes.\n')
-                    downloadNotesAsync(noteFilesList).then(resolve, reject)
+                    downloadNotesAsync(noteFilesPathList).then(resolve, reject)
                 } else {
                     var console_message = 'Fail to find notes\n'
                     console.log(console_message)
@@ -280,7 +284,6 @@ function escapeLaTeX(input) {
 
 
 router.get('/', function(req, res){
-
     getCoursesListPromise().then(function(data){
         var info = ''
         notesListData = JSON.parse(data)
@@ -318,14 +321,11 @@ router.get(/(\w+[0-9]\w*)/, function(req, res){
     console.log('\n--------------------------------')
 
     getNotesListOfACoursePromise(req.params[0]).then(function(data){
+
         markdown = md.render(escapeLaTeX(data))
         subject =  req.params[0].replace(/(([A-Z]|[a-z])+)(\d+(([A-Z]|[a-z])+)*)$/g, '$1').toUpperCase()
         catalog_number = req.params[0].replace(/(([A-Z]|[a-z])+)(\d+(([A-Z]|[a-z])+)*)$/g, '$3').toUpperCase()
         title = subject + ' ' + catalog_number
-
-        function callback(course_title) {
-
-        }
 
         getCourseTitlePromise(subject, catalog_number).then(function(course_title){
             res.render('notes/detail', {
@@ -333,13 +333,8 @@ router.get(/(\w+[0-9]\w*)/, function(req, res){
                 Title: title,
                 course_title: course_title
             })
-        }, function(reason) {
-
-        })
-
-    }, function(reason){
-
-    })
+        }, function(err) {})
+    }, function(err){})
 
 })
 
