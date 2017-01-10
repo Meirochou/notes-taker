@@ -36,14 +36,19 @@
         </header>
         <div class="container body-wrap" id="content">
             <ol class="course-list">
-                <% coursesList.forEach(function(item){ %>
-					<li>
-                        <a href="/notes/<%= item.subject.toLowerCase() + item.catalog_number %>">
-                            <div class="course-code"><%= item.subject + " " + item.catalog_number %></div>
-                            <div class="course-title"><%= item.title %></div>
-                        </a>
-					</li>
-    			<%})%>
+                <% if (typeof coursesList !== "undefined") { %>
+                    <% coursesList.forEach(function(item){ %>
+    					<li>
+                            <a href="/notes/<%= item.subject.toLowerCase() + item.catalog_number %>">
+                                <div class="course-code"><%= item.subject + " " + item.catalog_number %></div>
+                                <div class="course-title"><%= item.title %></div>
+                            </a>
+    					</li>
+        			<%})%>
+                <% } %>
+                <% if (typeof error !== "undefined") { %>
+                    <li>Failed to find any courses. <%= error %></li>
+                <% } %>
             </ol>
         </div>
     </main>
