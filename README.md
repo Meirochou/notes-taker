@@ -1,3 +1,5 @@
+A live [DEMO](http://zhongwzhao.me:4096/notes/)
+
 ## Requirements
 
 ### Node
